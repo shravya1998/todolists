@@ -23,6 +23,8 @@ class Todolist:
             "status": "Not Started",
             "created_on": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "due_date": due_date.strftime("%Y-%m-%d %H:%M"),
+            "diff": None,
+            "priority_level": None,
             "over_due": None,
             "last_updated_on": datetime.now().strftime("%Y-%m-%d %H:%M")
         }
@@ -60,6 +62,18 @@ class Todolist:
         else:
             print("Task not found.")
 
+    def assign_priority_level(self):
+        for task, info in self.tasks_list.items():
+            due_date = datetime.strptime(info["due_date"], "%Y-%m-%d %H:%M")
+            created_date = datetime.strptime(info["created_on"], "%Y-%m-%d %H:%M")
+            diff = (due_date - created_date).days
+            info["diff"] = diff
+        sorted_dict = dict(sorted(self.tasks_list.items(), key=lambda item:item[1]["diff"]))
+        for index, (task, info) in enumerate(sorted_dict.items()):
+            del info["diff"]
+            info["priority_level"] = index + 1
+        self.tasks_list = sorted_dict
+
     def search_tasks(self, *tasks):
         for task in tasks:
             if task in self.tasks_list:
@@ -89,7 +103,7 @@ t.load_tasks_from_file()
 
 while True:
 
-    menu = """1. Add task \n2. Delete task \n3. Mark In progress \n4. Mark completed \n5. Search Tasks \n6. Show tasks \n7. Exit"""
+    menu = """1. Add task \n2. Delete task \n3. Mark In progress \n4. Mark completed \n5. Search Tasks \n6. Show tasks & Exit"""
 
     print(menu)
 
@@ -121,10 +135,9 @@ while True:
         t.search_tasks(*tasks)
 
     elif selected_option == 6:
+        t.assign_priority_level()
         t.mark_overdue()
         t.show_tasks()
-
-    elif selected_option == 7:
         t.save_in_file()
         break
 
